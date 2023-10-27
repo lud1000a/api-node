@@ -15,11 +15,21 @@ module.exports = {
         return res.json(user.task);
     },
 
-    async store(req, res){
+    async indexStatus(req, res) {
+        //listar tasks
+        const { task_status } = req.params;
+
+        const task = await Task.findAll({ where: { user_id: req.userId, status: task_status } });
+
+        return res.json(task);
+    },
+
+
+    async store(req, res) {
         //criar task
         const user_id = req.userId;
 
-        const {task} = req.body;
+        const { task } = req.body;
 
         const status = 0;
 
@@ -34,50 +44,54 @@ module.exports = {
         });
 
         return res.json(tasks)
-    }, 
+    },
 
-    async update(req, res){
-       //maracar como feita
-       const user_id = req.userId;
-       const {task_id} =  req.params;
+    async update(req, res) {
+        //maracar como feita
+        const user_id = req.userId;
+        const { task_id } = req.params;
 
-       const task = await Task.findOne({ where: { id: task_id, user_id: user_id}});
+        const task = await Task.findOne({ where: { id: task_id, user_id: user_id } });
 
-        if(req.body.task){
+        if (req.body.task) {
             //mudar task se houver um body
             task.task = req.body.task;
             const save = await task.save();
-        
+
             return res.json().status(200);
-        }else{
-            
-            if(task.status === false){
+        } else {
+
+            if (task.status === false) {
                 //mudar para feita
                 task.status = 1;
                 const save = await task.save();
-            
+
                 return res.json(/*save*/).status(200);
-            }else{
+            } else {
                 //mudar para não feita
                 task.status = 0;
                 const save = await task.save();
-            
+
                 return res.json(/*save*/).status(200);
             }
         }
     },
 
-    async delete(req, res){
+    async delete(req, res) {
         //deletar dados do usuario
         const user_id = req.userId;
-        const {task_id} =  req.params;
+        const { task_id } = req.params;
 
-        const task = await Task.findOne({ where: { id: task_id, user_id: user_id}});
-
-        if(task.destroy()){
-            return res.json().status(200);
-        }else{
-            return res.json().status(401);
+        const task = await Task.findOne({ where: { id: task_id, user_id: user_id } });
+        if(task){
+            if (task.destroy()) {
+                return res.json().status(200);
+            } else {
+                return res.json().status(401);
+            }
+        }else {
+            return res.json().status(400);
         }
+        
     },
 };
