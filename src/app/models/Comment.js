@@ -4,6 +4,7 @@ class Comment extends Model {
     static init(sequelize) {
         super.init({
             comment: DataTypes.STRING,
+            user_id: DataTypes.INTEGER
         }, {
             sequelize
         })
@@ -11,6 +12,7 @@ class Comment extends Model {
 
     static associate(models) {
         this.belongsTo(models.Task, { foreignKey: 'task_id', as: 'tesk' });
+        this.belongsTo(models.User, { foreignKey: 'user_id', as: 'creator' });
     }
 }
 

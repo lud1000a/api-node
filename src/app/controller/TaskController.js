@@ -6,24 +6,22 @@ module.exports = {
         //listar tasks
         const user_id = req.userId;
 
-        const user = await User.findByPk(user_id, {
-            include: {
-                association: 'task',
-            }
-        });
+        const { task_status } = req.params ;
+        
+        if(task_status === 0 || task_status === 1){
+            const task = await Task.findAll({ where: { user_id: req.userId, status: task_status } });
 
-        return res.json(user.task);
+            return res.json(task);
+        }else{
+            const user = await User.findByPk(user_id, {
+                include: {
+                    association: 'task',
+                }
+            });
+    
+            return res.json(user.task);
+        }
     },
-
-    async indexStatus(req, res) {
-        //listar tasks
-        const { task_status } = req.params;
-
-        const task = await Task.findAll({ where: { user_id: req.userId, status: task_status } });
-
-        return res.json(task);
-    },
-
 
     async store(req, res) {
         //criar task

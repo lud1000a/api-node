@@ -55,13 +55,10 @@ module.exports = {
         //atualizar dados do usuario 
         const user = await User.findOne({ where: { id: req.userId } });
 ;
-        if (req.body.password && req.body.newpassword) {
-            const valid = await bcrypt.compare(req.body.password, user.password);
-            if(valid === false){
-                return res.json({ message: "Incorrect password" }).status(401);
-            } else {
-                user.password = req.body.newpassword;
-                const save = await user.save();
+        if (req.body) {
+            user.password = req.body.newpassword;
+            const save = await user.save();
+            if(save){
                 return res.json().status(200);
             }
         } else {

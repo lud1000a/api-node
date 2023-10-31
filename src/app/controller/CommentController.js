@@ -6,22 +6,35 @@ module.exports = {
         //listar comentarios da task
         const { task_id } = req.params;
         
-        const task = await Task.findByPk(task_id, {
-            include: {
-                association: 'comment',
+        if(task_id !== "-"){
+            const task = await Task.findByPk(task_id, {
+                include: {
+                    association: 'comment',
+                }
+            });
+    
+            if(!task){
+                return res.json({message: "Task not found!"});
             }
-        });
-
-        if(!task){
-            return res.json({message: "Task not found!"});
+    
+            return res.json(task.comment);
+        }else{
+            
+            return res.json(await Task.findAll({
+                include:[{
+                    model: Comment,
+                    as: 'comment'
+                }]
+            }));
         }
-
-        return res.json(task.comment);
+       
     },
 
     async store(req, res) {
         //criar comentario
         const { task_id } = req.params;
+        
+        const user_id = req.userId;
 
         const comment = req.body.comment;
 
@@ -33,6 +46,7 @@ module.exports = {
 
         const comments = await Comment.create({
             task_id,
+            user_id,
             comment
         });
 

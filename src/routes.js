@@ -25,13 +25,12 @@ router.delete('/user', Auth, UserController.delete);
 
 //task
 router.post('/task', Auth, TaskController.store);
-router.get('/task', Auth, TaskController.index);
-router.get('/task/:task_status', Auth, TaskController.indexStatus);
+router.get('/task/:task_status', Auth, TaskController.index);
 router.put('/task/:task_id', Auth, TaskController.update);
 router.delete('/task/:task_id', Auth, TaskController.delete);
 
 
-//task
+//comentarios
 router.post('/comm/:task_id', Auth, CommentController.store);
 router.get('/comm/:task_id', Auth, CommentController.index);
 router.put('/comm/:id', Auth, CommentController.update);

@@ -6,7 +6,7 @@ class Task extends Model {
             task: DataTypes.STRING,
             status: DataTypes.BOOLEAN,
         }, {
-            sequelize
+            sequelize 
         })
     }
 
