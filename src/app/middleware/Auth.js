@@ -4,7 +4,7 @@ require('dotenv').config();
 module.exports = (req, res, next) => {
 
   if (!req.headers.authorization) {
-    res.status(401).json({ msg: "not authorized" })
+    res.status(401).json({ erro: "not authorized" })
   } else {
 
     const token = req.headers["authorization"].replace('Bearer ', "");
@@ -15,7 +15,7 @@ module.exports = (req, res, next) => {
         if (err) {
 
           return res.status(401).send({
-            message: "Unauthorized!",
+            erro: "Unauthorized!",
           });
         }
         req.userId = decoded.id;

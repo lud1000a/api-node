@@ -5,9 +5,15 @@ require('dotenv').config();
 require('./database/index');
 
 const app = express();
-const PORT = process.env.PORT;
 
 app.use(express.json());
 app.use(routes);
 
-app.listen(PORT, () => console.log(`Server runnig or port ${PORT}`));
+if ( process.env.DB_NAME === "test"){
+
+}else{
+    const PORT = process.env.PORT;
+    app.listen(PORT);
+}
+
+module.exports = app

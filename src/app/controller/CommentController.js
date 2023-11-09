@@ -3,10 +3,11 @@ const Comment = require('../models/Comment');
 
 module.exports = {
     async index(req, res) {
-        //listar comentarios da task
-        const { task_id } = req.params;
         
+        const { task_id } = req.params;
+
         if(task_id !== "-"){
+
             const task = await Task.findByPk(task_id, {
                 include: {
                     association: 'comment',
@@ -14,13 +15,14 @@ module.exports = {
             });
     
             if(!task){
-                return res.json({message: "Task not found!"});
+                return res.status(400).json({erro: "Task not found!"});
             }
     
-            return res.json(task.comment);
+            return res.status(200).json(task.comment);
+
         }else{
             
-            return res.json(await Task.findAll({
+            return res.status(200).json(await Task.findAll({
                 include:[{
                     model: Comment,
                     as: 'comment'
@@ -31,7 +33,7 @@ module.exports = {
     },
 
     async store(req, res) {
-        //criar comentario
+
         const { task_id } = req.params;
         
         const user_id = req.userId;
@@ -41,6 +43,7 @@ module.exports = {
         const task = await Task.findByPk(task_id);
 
         if (!task) {
+
             return res.status(400).json({ error: 'Task not found' });
         }
 
@@ -50,7 +53,7 @@ module.exports = {
             comment
         });
 
-        return res.json(comments)
+        return res.status(201).json({ message: "Successfully created"})
     },
 
     async update(req, res) {
@@ -60,12 +63,18 @@ module.exports = {
         const comment = await Comment.findOne({ where: { id: id}});
 
         if(req.body  && comment){
+
             comment.comment = req.body.comment;
             const save = await comment.save();
 
-            return res.json().status(200); 
+            if(save){
+                return res.status(201).json({ message: "Successfully updated"}); 
+            }else{
+                return res.status(404).json(); 
+            }
+
         }else{
-            return res.json({message: "Erro"}).status(401); 
+            return res.status(401).json({ erro: "Invalid credentials"}); 
         }
         
     },
@@ -75,14 +84,17 @@ module.exports = {
         const { id } = req.params;
 
         const comment = await Comment.findOne({ where: { id: id}});
+        
         if(comment){
+
             if (comment.destroy()) {
                 return res.json().status(200);
             } else {
-                return res.json({message: "Erro"}).status(401);
+                return res.status(404);
             }
+
         }else {
-            return res.json({message: "Nonexiste"}).status(400);
+            return res.status(400).json({ erro: "Invalid credentials"});
         }
         
     },

@@ -3,28 +3,31 @@ const User = require('../models/User');
 
 module.exports = {
     async index(req, res) {
-        //listar tasks
+
         const user_id = req.userId;
 
         const { task_status } = req.params ;
         
         if(task_status === 0 || task_status === 1){
+
             const task = await Task.findAll({ where: { user_id: req.userId, status: task_status } });
 
-            return res.json(task);
+            return res.status(200).json(task);
+
         }else{
+
             const user = await User.findByPk(user_id, {
                 include: {
                     association: 'task',
                 }
             });
     
-            return res.json(user.task);
+            return res.status(200).json(user.task);
         }
     },
 
     async store(req, res) {
-        //criar task
+    
         const user_id = req.userId;
 
         const { task } = req.body;
@@ -41,55 +44,61 @@ module.exports = {
             status
         });
 
-        return res.json(tasks)
+        return res.status(201).json({ message: "Successfully created"})
     },
 
     async update(req, res) {
-        //maracar como feita
+       
         const user_id = req.userId;
         const { task_id } = req.params;
 
         const task = await Task.findOne({ where: { id: task_id, user_id: user_id } });
 
         if (req.body.task) {
-            //mudar task se houver um body
+           
             task.task = req.body.task;
             const save = await task.save();
-
-            return res.json().status(200);
-        } else {
+            
+            if(save){
+                return res.status(201).json({message: 'Successfully updated'});
+            }else{
+                return res.status(404);
+            }
+            
+        } else if(task) {
 
             if (task.status === false) {
-                //mudar para feita
+                
                 task.status = 1;
-                const save = await task.save();
+                await task.save();
 
-                return res.json(/*save*/).status(200);
+                return res.status(201).json({message: 'Successfully updated'});
             } else {
-                //mudar para não feita
+                
                 task.status = 0;
-                const save = await task.save();
+                await task.save();
 
-                return res.json(/*save*/).status(200);
+                return res.status(201).json({message: 'Successfully updated'});
             }
+
         }
+        
     },
 
     async delete(req, res) {
-        //deletar dados do usuario
+       
         const user_id = req.userId;
         const { task_id } = req.params;
 
         const task = await Task.findOne({ where: { id: task_id, user_id: user_id } });
+
         if(task){
-            if (task.destroy()) {
-                return res.json().status(200);
-            } else {
-                return res.json().status(401);
-            }
+            if (task.destroy()){
+                return res.status(200).json({message: "Successfully delete"});
+             } 
         }else {
-            return res.json().status(400);
-        }
+           return res.status(400).json({erro: "Task not found"});
+         }
         
     },
 };

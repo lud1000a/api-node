@@ -5,6 +5,7 @@ const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 
 module.exports = {
+    
     async login(req, res) {
         //logar
         const { email, password } = req.body;
@@ -12,19 +13,32 @@ module.exports = {
         const user = await User.findOne({ where: { email: email } });
 
         if (user === null) {
-            return res.json({message: "Erro"}).status(400);
-        }
 
-        const valid = await bcrypt.compare(password, user.password);
-        if (valid === false) {
-            return res.json({ message: "Incorrect Password" });
-        } else {
-            const jwtToken = jwt.sign(
-                { id: user.id, email: user.email },
-                process.env.JWT_SECRET, {
-                expiresIn: 86400,
-            });
-            return res.json({ message: "Welcome!", token: jwtToken });
+            return res.status(400).json({ erro: "Incorrect credentials" });
+
+        }else{
+            const valid = await bcrypt.compare(password, user.password);
+
+            if (valid === false) {
+
+                return res.status(400).json({ erro: "Incorrect credentials" });
+
+            } else {
+
+                const jwtToken = jwt.sign(
+                    { id: user.id, email: user.email },
+                    process.env.JWT_SECRET, {
+                    expiresIn: 86400,
+                });
+
+                if(jwtToken){
+                    
+                    return res.status(200).json({ message: "Welcome!", token: jwtToken });
+                }
+
+                return res.status(404).json({ erro: "Token not found"})
+                
+            }
         }
     },
 
@@ -35,7 +49,7 @@ module.exports = {
         const user = await User.findOne({ where: { email: email } });
 
         if (user) {
-            //criar token
+            
             const token = crypto.randomBytes(10).toString('hex');
             const now = new Date();
             now.setHours(now.getHours() + 1);
@@ -53,12 +67,11 @@ module.exports = {
             const save = await user.save();
 
             if (!save) {
-                return res.status(400).json({
-                    message: "Erro"
-                });
+
+                return res.status(502).json({ erro: "Token not save"});
+
             } else {
 
-                //mandar email
                 var transport = nodemailer.createTransport({
                     host: "sandbox.smtp.mailtrap.io",
                     port: 2525,
@@ -77,19 +90,17 @@ module.exports = {
                 };
 
                 transport.sendMail(message, function (err) {
-                    if (err) return res.status(400).json({
-                        mensagem: "Erro: E-mail não enviado com sucesso!"
-                    });
+                    if (err) return res.status(400).json({ erro: "E-mail not sent" });
                 });
 
-                return res.json({
-                    mensagem: "E-mail enviado com sucesso!"
-                });
+                return res.status(200).json({ mensagem: "E-mail sent with success" });
+
             }
         } else {
-            return res.status(400).json({ message: "User not found" });
-        }
 
+            return res.status(400).json({ erro: "Incorrect credentials" });
+
+        }
     },
 
     async recoveryPassword(req, res) {
@@ -97,16 +108,24 @@ module.exports = {
         const user = await User.findOne({ where: { recovery_key: req.body.token } });
 
         if (req.body.token && req.body.newpassword && user) {
-            //mudar task se houver um body
+            
             user.password = req.body.newpassword;
             user.recovery_key = null;
+
             if (await user.save()) {
-                return res.json().status(200);
+
+                return res.status(200).json({ message: "Success"});
+
             } else {
-                return res.json({ message: "Erro 2" }).status(400);
+
+                return res.status(400).json({ erro: "Credentials not updated" });
+
             }
         } else {
-            return res.json({ message: "Token not found" }).status(400);
+
+            return res.status(400).json({ erro: "Token not found" });
+
         }
     },
+
 }

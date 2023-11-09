@@ -1,68 +1,70 @@
 const User = require('../models/User');
-const bcrypt = require('bcrypt');
 
 module.exports = {
-    async store(req, res) {
-        //salvar novo usuario
-        const { name, email, password } = req.body;
 
+    async store(req, res) {
+       
+        const { name, email, password } = req.body;
+        
         const emailValidation = await User.findOne({ where: { email: email } });
 
         if (emailValidation === null) {
-            if(req.body !== null){
+
+            if(password !== "" && email !== "" && password !== ""){
                 const user = await User.create({ name, email, password });
 
-                return res.json(user);
+                return res.status(201).json({ message: "Successfully created"});
+
             }else{
-                return res.status(401).json({ message: "Erro" });
+                return res.status(400).json({ erro: "Invalid credentials"}); 
             }
+
         } else {
-            return res.status(401).json({ message: "Erro" });
+            return res.status(400).json({ erro: "Invalid credentials 2"}); 
         }
 
     },
 
     async show(req, res) {
-        //mostrar dados do usuario
+      
         const user = await User.findOne({ where: { id: req.userId } });
 
-        return res.json({
+        return res.status(200).json({
             name: user.name,
             email: user.email
         });
     },
 
     async update(req, res) {
-        //atualizar dados do usuario 
+        
         const user = await User.findOne({ where: { id: req.userId } });
 
         if (req.body.name) {
-            //mudar task se houver um body
+
             user.name = req.body.name;
             const save = await user.save();
 
-            return res.json({
-                name: user.name,
-                email: user.email
-            }).status(200);
+            return res.status(201).json({ message: "Successfully updated"});
 
         } else {
-            return res.json({ message: "Erro" }).status(401);
+            return res.status(400).json({ erro: "Invalid credentials"}); 
         }
     },
 
     async updatePassword(req, res) {
-        //atualizar dados do usuario 
+        
         const user = await User.findOne({ where: { id: req.userId } });
 ;
         if (req.body) {
+            
             user.password = req.body.newpassword;
             const save = await user.save();
+
             if(save){
-                return res.json().status(200);
+                return res.status(201).json({ message: "Successfully updated"})
             }
         } else {
-            return res.json({ message: "Erro" }).status(401);
+            return res.status(400).json({ erro: "Invalid credentials"}); 
         }
     },
 
@@ -73,12 +75,12 @@ module.exports = {
 
         if (user) {
             if (user.destroy()) {
-                return res.json().status(200);
+                return res.status(200).json({ message: "Successfully "});
             } else {
-                return res.json().status(401);
+                return res.status(404);
             }
         } else {
-            return res.status(400).json({ message: "Erro" });
+            return res.status(400).json({ erro: "Invalid credentials"}); 
         }
     },
 };
